@@ -17,8 +17,6 @@ var addresses = []string{
 	"http://sp1.hiweb.ir.prod.hosts.ooklaserver.net:8080/upload",
 	"http://rhaspd2.mci.ir:8080/upload",
 	"http://ookla-tehran.tci.ir.prod.hosts.ooklaserver.net:8080/upload",
-	"http://speedtest.techno2000.net.prod.hosts.ooklaserver.net:8080/upload",
-	"http://sptest.hostiran.net.prod.hosts.ooklaserver.net:8080/upload",
 	"http://speedtest1.irancell.ir.prod.hosts.ooklaserver.net:8080/upload",
 	"http://turbo.nakhl.net.prod.hosts.ooklaserver.net:8080/upload",
 }
