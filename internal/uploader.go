@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
+	"time"
 )
 
 type Uploader struct {
@@ -40,9 +41,13 @@ func (u *Uploader) SendData(address string, maxRate int64) error {
 		return err
 	}
 
+	startTime := time.Now()
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
+	}
+	if constants.DEBUG {
+		logs.Logger.Println(address, " took ", time.Since(startTime).Milliseconds(), "ms")
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
