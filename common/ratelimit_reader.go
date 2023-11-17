@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const defaultReadAmount = 1 << 20
+const defaultReadAmount = 1 << 15
 
 type RateLimitReader struct {
 	*bytes.Reader
@@ -15,16 +15,19 @@ type RateLimitReader struct {
 }
 
 func NewRateLimiterReader(b []byte, maxRate int64) *RateLimitReader {
-	return &RateLimitReader{
+	rateLimiter := &RateLimitReader{
 		Reader:  bytes.NewReader(b),
 		maxrate: maxRate,
 	}
+	return rateLimiter
 }
 
 func (r *RateLimitReader) allowedReadAmount() int64 {
 	if r.lastRead.IsZero() {
 		return defaultReadAmount
 	}
+	timeToSleep := float64(1000)/float64((r.maxrate+defaultReadAmount-1)/defaultReadAmount) - float64(time.Since(r.lastRead).Milliseconds())
+	time.Sleep(time.Duration(int64(timeToSleep)) * time.Millisecond)
 
 	return int64(float64(r.maxrate) * time.Since(r.lastRead).Seconds())
 }
