@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"FakeTCPUploader/common"
 	"FakeTCPUploader/constants"
 	"FakeTCPUploader/logs"
 	"bytes"
@@ -15,6 +16,7 @@ type Uploader struct {
 	chunkSize int64
 	addresses []string
 	baseData  []byte
+	counter   int
 }
 
 func NewUploader(chunkSize int64, addresses []string) *Uploader {
@@ -32,8 +34,13 @@ func (u *Uploader) getRandomAddress() string {
 	return u.addresses[rand.Int()%len(u.addresses)]
 }
 
-func (u *Uploader) SendData(address string) error {
-	resp, err := http.Post(address, "application/octet-stream", bytes.NewReader(u.baseData))
+func (u *Uploader) SendData(address string, maxRate int64) error {
+	req, err := common.CreateHttpPostRequest("application/octet-stream", address, u.baseData, maxRate)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -44,20 +51,23 @@ func (u *Uploader) SendData(address string) error {
 	return nil
 }
 
-func (u *Uploader) SendParallel(count int) {
+func (u *Uploader) SendParallel(count int, maxTransferRate int64) {
 	if constants.DEBUG {
 		logs.Logger.Println("sending ", count)
 	}
+	transferRate := maxTransferRate / int64(count)
 	wg := sync.WaitGroup{}
 	for i := 0; i < count; i++ {
 		wg.Add(1)
-		go func() {
+		go func(addrIdx int) {
 			defer wg.Done()
-			err := u.SendData(u.addresses[count%len(u.addresses)])
+			err := u.SendData(u.addresses[addrIdx], transferRate)
 			if err != nil {
 				logs.Logger.Println("error in sending: ", err)
 			}
-		}()
+		}(u.counter)
+		u.counter++
+		u.counter %= len(u.addresses)
 	}
 	wg.Wait()
 }
