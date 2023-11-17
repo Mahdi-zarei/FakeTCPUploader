@@ -2,7 +2,9 @@ package main
 
 import (
 	"FakeTCPUploader/common"
+	"FakeTCPUploader/constants"
 	"FakeTCPUploader/internal"
+	"FakeTCPUploader/logs"
 	"flag"
 	"log"
 	"time"
@@ -27,13 +29,24 @@ func main() {
 	_chunkSize := flag.Int64("chunkSize", 512000, "size of uploaded data in each post request")
 	_interfaceName := flag.String("interface", "ens3", "name of interface to monitor")
 	_offset := flag.Int64("offset", 0, "offset for download in GB")
+	_debug := flag.Bool("debug", false, "enable debug logs")
 	flag.Parse()
-	logger := log.Default()
+	logs.Logger = log.Default()
+	constants.DEBUG = *_debug
 	ratio := *_ratio
 	maxSpeed := common.MBtoBytes(*_maxSpeed)
 	chunkSize := *_chunkSize
 	interfaceName := *_interfaceName
 	offset := *_offset
+
+	if constants.DEBUG {
+		logs.Logger.Printf("starting with ratio %v, maxSpeed %v, chunkSize %v, interfaceName %v, offset %v",
+			ratio,
+			maxSpeed,
+			chunkSize,
+			interfaceName,
+			offset)
+	}
 
 	calulator := internal.NewCalculator(int64(ratio), offset, maxSpeed)
 	networkWatcher := internal.NewNetworkWatcher(interfaceName)
@@ -43,10 +56,13 @@ func main() {
 		calulator.RegisterNew(common.MustVal(networkWatcher.GetDownloadedBytes()), common.MustVal(networkWatcher.GetUploadedBytes()))
 		needed := calulator.GetNeededWrite()
 		if needed == 0 {
+			if constants.DEBUG {
+				logs.Logger.Println("no needed data")
+			}
 			time.Sleep(200 * time.Millisecond)
 			continue
 		}
 		writeCount := (needed + chunkSize) / chunkSize
-		uploader.SendParallel(logger, int(writeCount))
+		uploader.SendParallel(int(writeCount))
 	}
 }

@@ -1,9 +1,10 @@
 package internal
 
 import (
+	"FakeTCPUploader/constants"
+	"FakeTCPUploader/logs"
 	"bytes"
 	"errors"
-	"log"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -41,12 +42,15 @@ func (u *Uploader) SendData() error {
 	return nil
 }
 
-func (u *Uploader) SendParallel(l *log.Logger, count int) {
+func (u *Uploader) SendParallel(count int) {
+	if constants.DEBUG {
+		logs.Logger.Println("sending ", count)
+	}
 	for i := 0; i < count; i++ {
 		go func() {
 			err := u.SendData()
 			if err != nil {
-				l.Println("error in sending: ", err)
+				logs.Logger.Println("error in sending: ", err)
 			}
 		}()
 	}
