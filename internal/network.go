@@ -1,60 +1,57 @@
 package internal
 
 import (
+	"FakeTCPUploader/common"
 	"FakeTCPUploader/constants"
 	"FakeTCPUploader/logs"
-	"errors"
-	"github.com/akhenakh/statgo"
+	"io"
+	"os"
+	"strconv"
+	"strings"
 )
 
 type NetworkWatcher struct {
 	interfaceName string
-	stats         *statgo.Stat
 }
 
 func NewNetworkWatcher(interfaceName string) *NetworkWatcher {
 	return &NetworkWatcher{
 		interfaceName: interfaceName,
-		stats:         statgo.NewStat(),
 	}
 }
 
 func (n *NetworkWatcher) GetDownloadedBytes() (int64, error) {
-	stats := n.getNetStats()
-	if stats == nil {
-		return 0, errors.New("no interface found with the given name " + n.interfaceName)
+	f, e := os.Open("/sys/class/net/ens3/statistics/rx_bytes")
+	if e != nil {
+		return 0, e
 	}
+	all, e := io.ReadAll(f)
+	if e != nil {
+		return 0, e
+	}
+	rx := common.MustVal(strconv.ParseInt(strings.ReplaceAll(string(all), "\n", ""), 10, 64))
+
 	if constants.DEBUG {
-		logs.Logger.Println("current dl ", stats.RX)
+		logs.Logger.Println("current dl ", rx)
 	}
 
-	return int64(stats.RX), nil
+	return rx, nil
 }
 
 func (n *NetworkWatcher) GetUploadedBytes() (int64, error) {
-	stats := n.getNetStats()
-	if stats == nil {
-		return 0, errors.New("no interface found with the given name " + n.interfaceName)
+	f, e := os.Open("/sys/class/net/ens3/statistics/tx_bytes")
+	if e != nil {
+		return 0, e
 	}
+	all, e := io.ReadAll(f)
+	if e != nil {
+		return 0, e
+	}
+	tx := common.MustVal(strconv.ParseInt(strings.ReplaceAll(string(all), "\n", ""), 10, 64))
+
 	if constants.DEBUG {
-		logs.Logger.Println("current up ", stats.TX)
+		logs.Logger.Println("current up ", tx)
 	}
 
-	return int64(stats.TX), nil
-}
-
-func (n *NetworkWatcher) getNetStats() *statgo.NetIOStats {
-	allStats := n.stats.NetIOStats()
-	if constants.DEBUG {
-		for _, s := range allStats {
-			logs.Logger.Println(*s)
-		}
-	}
-	for _, val := range allStats {
-		if val.IntName == n.interfaceName {
-			return val
-		}
-	}
-
-	return nil
+	return tx, nil
 }
