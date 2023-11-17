@@ -64,5 +64,6 @@ func main() {
 		}
 		writeCount := (needed + chunkSize) / chunkSize
 		uploader.SendParallel(int(writeCount))
+		time.Sleep(1 * time.Second)
 	}
 }
