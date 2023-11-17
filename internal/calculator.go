@@ -7,7 +7,6 @@ import (
 
 type Calculator struct {
 	offset    int64
-	maxRate   int64
 	currentRX int64
 	currentTX int64
 	mu        sync.RWMutex
@@ -16,9 +15,8 @@ type Calculator struct {
 
 func NewCalculator(ratio int64, offset int64, maxRate int64) *Calculator {
 	return &Calculator{
-		offset:  offset,
-		maxRate: maxRate,
-		ratio:   ratio,
+		offset: offset,
+		ratio:  ratio,
 	}
 }
 
@@ -44,5 +42,5 @@ func (c *Calculator) GetNeededWrite() int64 {
 	if neededBytes == 0 {
 		return common.MBtoBytes(1)
 	}
-	return min(neededBytes, c.maxRate)
+	return neededBytes
 }
