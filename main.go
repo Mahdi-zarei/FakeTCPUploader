@@ -27,6 +27,8 @@ func main() {
 	_chunkSize := flag.Int64("chunkSize", 64, "size of uploaded data in MB in each post request")
 	_interfaceName := flag.String("interface", "ens3", "name of interface to monitor")
 	_offset := flag.Int64("offset", 0, "offset for download in GB")
+	_sleeptime := flag.Int("sleepTime", 1000, "sleep time between checker loops in ms")
+	_extraCount := flag.Int("extra", 3, "extra chunks uploaded per checker loop when ratio is already satisfied")
 	_debug := flag.Bool("debug", false, "enable debug logs")
 	flag.Parse()
 	logs.Logger = log.Default()
@@ -36,6 +38,8 @@ func main() {
 	chunkSize := common.MBtoBytes(*_chunkSize)
 	interfaceName := *_interfaceName
 	offset := *_offset
+	sleeptime := *_sleeptime
+	extraCount := *_extraCount
 
 	if constants.DEBUG {
 		logs.Logger.Printf("starting with ratio %v, maxSpeed %v, chunkSize %v, interfaceName %v, offset %v",
@@ -60,9 +64,9 @@ func main() {
 			time.Sleep(200 * time.Millisecond)
 			continue
 		}
-		writeCount := (needed + chunkSize) / chunkSize
+		writeCount := (needed + int64(extraCount)*chunkSize) / chunkSize
 		writeCount = min(writeCount, int64(len(addresses)*4))
 		uploader.SendParallel(int(writeCount), maxSpeed)
-		time.Sleep(1 * time.Second)
+		time.Sleep(time.Duration(sleeptime) * time.Millisecond)
 	}
 }
