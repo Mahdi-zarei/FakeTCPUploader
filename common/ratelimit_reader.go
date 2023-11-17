@@ -26,9 +26,7 @@ func (r *RateLimitReader) allowedReadAmount() int64 {
 		return defaultReadAmount
 	}
 
-	allowedRead := int64(float64(r.maxrate) * time.Since(r.lastRead).Seconds())
-	allowedRead = max(defaultReadAmount, allowedRead)
-	return allowedRead
+	return int64(float64(r.maxrate) * time.Since(r.lastRead).Seconds())
 }
 
 func (r *RateLimitReader) Read(p []byte) (n int, err error) {
