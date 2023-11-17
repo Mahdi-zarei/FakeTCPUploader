@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"sync"
 )
 
 type Uploader struct {
@@ -46,12 +47,16 @@ func (u *Uploader) SendParallel(count int) {
 	if constants.DEBUG {
 		logs.Logger.Println("sending ", count)
 	}
+	wg := sync.WaitGroup{}
 	for i := 0; i < count; i++ {
+		wg.Add(1)
 		go func() {
+			defer wg.Done()
 			err := u.SendData()
 			if err != nil {
 				logs.Logger.Println("error in sending: ", err)
 			}
 		}()
 	}
+	wg.Wait()
 }
