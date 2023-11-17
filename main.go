@@ -7,6 +7,8 @@ import (
 	"FakeTCPUploader/logs"
 	"flag"
 	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"time"
 )
 
@@ -22,6 +24,9 @@ var addresses = []string{
 }
 
 func main() {
+	go func() {
+		http.ListenAndServe(":3436", nil)
+	}()
 	_ratio := flag.Int("ratio", 10, "ratio of upload to download")
 	_maxSpeed := flag.Int64("maxSpeed", 32, "max upload speed in MB")
 	_chunkSize := flag.Int64("chunkSize", 64, "size of uploaded data in MB in each post request")
