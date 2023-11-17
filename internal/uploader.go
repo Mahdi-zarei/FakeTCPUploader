@@ -4,11 +4,13 @@ import (
 	"FakeTCPUploader/constants"
 	"FakeTCPUploader/logs"
 	"bytes"
+	"context"
 	"errors"
 	"math/rand"
 	"net/http"
 	"strconv"
 	"sync"
+	"time"
 )
 
 type Uploader struct {
@@ -32,7 +34,16 @@ func (u *Uploader) getRandomAddress() string {
 func (u *Uploader) SendData() error {
 	data := bytes.Repeat(u.baseData, int(float64(u.chunkSize)/float64(len(u.baseData))))
 	data = append(data, u.baseData[:u.chunkSize-int64(len(data))]...)
-	resp, err := http.Post(u.getRandomAddress(), "application/octet-stream", bytes.NewReader(data))
+
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.getRandomAddress(), bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	req.Header.Add("contentType", "application/octet-stream")
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}
