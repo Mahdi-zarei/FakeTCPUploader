@@ -4,13 +4,11 @@ import (
 	"FakeTCPUploader/constants"
 	"FakeTCPUploader/logs"
 	"bytes"
-	"context"
 	"errors"
 	"math/rand"
 	"net/http"
 	"strconv"
 	"sync"
-	"time"
 )
 
 type Uploader struct {
@@ -21,7 +19,8 @@ type Uploader struct {
 
 func NewUploader(chunkSize int64, addresses []string) *Uploader {
 	b := []byte("0987654321asdfghjklqwertyuiozxcvbnm")
-	baseData := bytes.Repeat(b, int(chunkSize)/len(b)+1)
+	baseData := bytes.Repeat(b, int(chunkSize)/len(b))
+	baseData = append(baseData, b[:int(chunkSize)-len(baseData)]...)
 	return &Uploader{
 		chunkSize: chunkSize,
 		addresses: addresses,
@@ -33,16 +32,8 @@ func (u *Uploader) getRandomAddress() string {
 	return u.addresses[rand.Int()%len(u.addresses)]
 }
 
-func (u *Uploader) SendData() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.getRandomAddress(), bytes.NewReader(u.baseData[:u.chunkSize]))
-	if err != nil {
-		return err
-	}
-	req.Header.Add("contentType", "application/octet-stream")
-
-	resp, err := http.DefaultClient.Do(req)
+func (u *Uploader) SendData(address string) error {
+	resp, err := http.Post(address, "application/octet-stream", bytes.NewReader(u.baseData))
 	if err != nil {
 		return err
 	}
@@ -62,7 +53,7 @@ func (u *Uploader) SendParallel(count int) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			err := u.SendData()
+			err := u.SendData(u.addresses[count%len(u.addresses)])
 			if err != nil {
 				logs.Logger.Println("error in sending: ", err)
 			}

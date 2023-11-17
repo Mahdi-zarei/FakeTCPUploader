@@ -26,7 +26,7 @@ var addresses = []string{
 func main() {
 	_ratio := flag.Int("ratio", 10, "ratio of upload to download")
 	_maxSpeed := flag.Int64("maxSpeed", 368, "max upload speed")
-	_chunkSize := flag.Int64("chunkSize", 512000, "size of uploaded data in each post request")
+	_chunkSize := flag.Int64("chunkSize", common.MBtoBytes(32), "size of uploaded data in each post request")
 	_interfaceName := flag.String("interface", "ens3", "name of interface to monitor")
 	_offset := flag.Int64("offset", 0, "offset for download in GB")
 	_debug := flag.Bool("debug", false, "enable debug logs")
@@ -63,6 +63,8 @@ func main() {
 			continue
 		}
 		writeCount := (needed + chunkSize) / chunkSize
+		writeCount = min(writeCount, int64(len(addresses)*10))
 		uploader.SendParallel(int(writeCount))
+		time.Sleep(1 * time.Second)
 	}
 }
