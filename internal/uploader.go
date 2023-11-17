@@ -20,10 +20,12 @@ type Uploader struct {
 }
 
 func NewUploader(chunkSize int64, addresses []string) *Uploader {
+	b := []byte("0987654321asdfghjklqwertyuiozxcvbnm")
+	baseData := bytes.Repeat(b, int(chunkSize)/len(b)+1)
 	return &Uploader{
 		chunkSize: chunkSize,
 		addresses: addresses,
-		baseData:  []byte("0987654321asdfghjklqwertyuiozxcvbnm"),
+		baseData:  baseData,
 	}
 }
 
@@ -32,12 +34,9 @@ func (u *Uploader) getRandomAddress() string {
 }
 
 func (u *Uploader) SendData() error {
-	data := bytes.Repeat(u.baseData, int(float64(u.chunkSize)/float64(len(u.baseData))))
-	data = append(data, u.baseData[:u.chunkSize-int64(len(data))]...)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.getRandomAddress(), bytes.NewReader(data))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.getRandomAddress(), bytes.NewReader(u.baseData[:u.chunkSize]))
 	if err != nil {
 		return err
 	}
