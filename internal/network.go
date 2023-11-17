@@ -25,6 +25,7 @@ func (n *NetworkWatcher) GetDownloadedBytes() (int64, error) {
 	if e != nil {
 		return 0, e
 	}
+	defer f.Close()
 	all, e := io.ReadAll(f)
 	if e != nil {
 		return 0, e
@@ -43,6 +44,7 @@ func (n *NetworkWatcher) GetUploadedBytes() (int64, error) {
 	if e != nil {
 		return 0, e
 	}
+	defer f.Close()
 	all, e := io.ReadAll(f)
 	if e != nil {
 		return 0, e

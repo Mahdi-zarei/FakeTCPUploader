@@ -31,7 +31,7 @@ func (u *Uploader) getRandomAddress() string {
 func (u *Uploader) SendData() error {
 	data := bytes.Repeat(u.baseData, int(float64(u.chunkSize)/float64(len(u.baseData))))
 	data = append(data, u.baseData[:u.chunkSize-int64(len(data))]...)
-	resp, err := http.Post(u.getRandomAddress(), "http://ookla-speedtest.shatel.ir.prod.hosts.ooklaserver.net:8080/upload", bytes.NewReader(data))
+	resp, err := http.Post(u.getRandomAddress(), "application/octet-stream", bytes.NewReader(data))
 	if err != nil {
 		return err
 	}
