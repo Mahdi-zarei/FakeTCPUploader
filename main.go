@@ -33,7 +33,7 @@ func main() {
 	_interfaceName := flag.String("interface", "ens3", "name of interface to monitor")
 	_offset := flag.Int64("offset", 0, "offset for download in GB")
 	_sleeptime := flag.Int("sleepTime", 1000, "sleep time between checker loops in ms")
-	_extraCount := flag.Int("extra", 3, "extra chunks uploaded per checker loop when ratio is already satisfied")
+	_extraCount := flag.Int("extra", 1, "extra chunks uploaded per checker loop when ratio is already satisfied")
 	_debug := flag.Bool("debug", false, "enable debug logs")
 	flag.Parse()
 	logs.Logger = log.Default()
@@ -64,10 +64,9 @@ func main() {
 		needed := calulator.GetNeededWrite()
 		if needed == 0 {
 			if constants.DEBUG {
-				logs.Logger.Println("no needed data")
+				logs.Logger.Println("no needed data, going on with delay")
 			}
 			time.Sleep(200 * time.Millisecond)
-			continue
 		}
 		writeCount := (needed + int64(extraCount)*chunkSize) / chunkSize
 		writeCount = min(writeCount, int64(len(addresses)*4))
