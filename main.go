@@ -64,9 +64,11 @@ func main() {
 		needed := calulator.GetNeededWrite()
 		if needed == 0 {
 			if constants.DEBUG {
-				logs.Logger.Println("no needed data, going on with delay")
+				logs.Logger.Println("no needed data, going on with delay and half speed")
 			}
 			time.Sleep(200 * time.Millisecond)
+			uploader.SendParallel(1, maxSpeed/2)
+			continue
 		}
 		writeCount := (needed + int64(extraCount)*chunkSize) / chunkSize
 		writeCount = min(writeCount, int64(len(addresses)*4))
