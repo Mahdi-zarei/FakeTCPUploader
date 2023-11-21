@@ -13,7 +13,6 @@ import (
 )
 
 var addresses = []string{
-	"http://ookla-speedtest.shatel.ir.prod.hosts.ooklaserver.net:8080/upload",
 	"http://speedtest1.pishgaman.net.prod.hosts.ooklaserver.net:8080/upload",
 	"http://sp2.petiak.com.prod.hosts.ooklaserver.net:8080/upload",
 	"http://sp1.hiweb.ir.prod.hosts.ooklaserver.net:8080/upload",
