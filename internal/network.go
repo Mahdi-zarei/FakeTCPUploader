@@ -21,7 +21,7 @@ func NewNetworkWatcher(interfaceName string) *NetworkWatcher {
 }
 
 func (n *NetworkWatcher) GetDownloadedBytes() (int64, error) {
-	f, e := os.Open("/sys/class/net/ens3/statistics/rx_bytes")
+	f, e := os.Open("/sys/class/net/" + n.interfaceName + "/statistics/rx_bytes")
 	if e != nil {
 		return 0, e
 	}
@@ -40,7 +40,7 @@ func (n *NetworkWatcher) GetDownloadedBytes() (int64, error) {
 }
 
 func (n *NetworkWatcher) GetUploadedBytes() (int64, error) {
-	f, e := os.Open("/sys/class/net/ens3/statistics/tx_bytes")
+	f, e := os.Open("/sys/class/net/" + n.interfaceName + "/statistics/tx_bytes")
 	if e != nil {
 		return 0, e
 	}
