@@ -5,6 +5,7 @@ import (
 	"FakeTCPUploader/constants"
 	"FakeTCPUploader/logs"
 	"bytes"
+	"context"
 	"errors"
 	"math/rand"
 	"net/http"
@@ -36,7 +37,9 @@ func (u *Uploader) getRandomAddress() string {
 }
 
 func (u *Uploader) SendData(address string, maxRate int64) error {
-	req, err := common.CreateHttpPostRequest("application/octet-stream", address, u.baseData, maxRate)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	defer cancel()
+	req, err := common.CreateHttpPostRequest(ctx, "application/octet-stream", address, u.baseData, maxRate)
 	if err != nil {
 		return err
 	}

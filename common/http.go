@@ -1,12 +1,13 @@
 package common
 
 import (
+	"context"
 	"io"
 	"net/http"
 )
 
-func CreateHttpPostRequest(contentType string, url string, b []byte, maxrate int64) (*http.Request, error) {
-	req, err := http.NewRequest("POST", url, nil)
+func CreateHttpPostRequest(ctx context.Context, contentType string, url string, b []byte, maxrate int64) (*http.Request, error) {
+	req, err := http.NewRequestWithContext(ctx, "POST", url, nil)
 	if err != nil {
 		return nil, err
 	}
