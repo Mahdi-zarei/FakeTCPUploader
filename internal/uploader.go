@@ -44,13 +44,9 @@ func (u *Uploader) SendData(address string, maxRate int64) error {
 		return err
 	}
 
-	startTime := time.Now()
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
-	}
-	if constants.DEBUG {
-		logs.Logger.Println(address, " took ", time.Since(startTime).Milliseconds(), "ms")
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
@@ -69,9 +65,13 @@ func (u *Uploader) SendParallel(count int, maxTransferRate int64) {
 		wg.Add(1)
 		go func(addrIdx int) {
 			defer wg.Done()
+			startTime := time.Now()
 			err := u.SendData(u.addresses[addrIdx], transferRate)
+			t := time.Since(startTime)
 			if err != nil {
-				logs.Logger.Println("error in sending: ", err)
+				logs.Logger.Printf("error in sending after %v: %v", t.Seconds(), err)
+			} else {
+				logs.Logger.Printf("finished sending for %v in %v", u.addresses[addrIdx], t.Seconds())
 			}
 		}(u.counter)
 		u.counter++

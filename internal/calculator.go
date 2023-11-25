@@ -2,6 +2,8 @@ package internal
 
 import (
 	"FakeTCPUploader/common"
+	"FakeTCPUploader/constants"
+	"FakeTCPUploader/logs"
 	"sync"
 )
 
@@ -35,6 +37,9 @@ func (c *Calculator) GetNeededWrite() int64 {
 		return 0
 	}
 	currentRatio := int64(float64(c.currentTX) / float64(currRX))
+	if constants.DEBUG {
+		logs.Logger.Println("current total ratio: ", currentRatio)
+	}
 	neededBytes := (c.ratio - currentRatio) * c.currentRX
 	if neededBytes < 0 {
 		return 0
@@ -50,6 +55,9 @@ func (c *Calculator) GetLocalNeededWrite(rx, tx int64) int64 {
 		return 0
 	}
 	currentRatio := int64(float64(tx) / float64(rx))
+	if constants.DEBUG {
+		logs.Logger.Println("current local ratio: ", currentRatio)
+	}
 	neededBytes := (c.ratio - currentRatio) * rx
 	if neededBytes < 0 {
 		return 0

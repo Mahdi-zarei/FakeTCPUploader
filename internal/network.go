@@ -72,10 +72,6 @@ func (n *NetworkWatcher) GetDownloadedBytes() (int64, error) {
 	}
 	rx := common.MustVal(strconv.ParseInt(strings.ReplaceAll(string(all), "\n", ""), 10, 64))
 
-	if constants.DEBUG {
-		logs.Logger.Println("current dl ", rx)
-	}
-
 	return rx, nil
 }
 
@@ -90,10 +86,6 @@ func (n *NetworkWatcher) GetUploadedBytes() (int64, error) {
 		return 0, e
 	}
 	tx := common.MustVal(strconv.ParseInt(strings.ReplaceAll(string(all), "\n", ""), 10, 64))
-
-	if constants.DEBUG {
-		logs.Logger.Println("current up ", tx)
-	}
 
 	return tx, nil
 }
