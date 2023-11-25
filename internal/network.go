@@ -8,16 +8,56 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type NetworkWatcher struct {
-	interfaceName string
+	interfaceName  string
+	snapShotTime   time.Time
+	snapShotRXDiff int64
+	snapShotTXDiff int64
 }
 
-func NewNetworkWatcher(interfaceName string) *NetworkWatcher {
-	return &NetworkWatcher{
+func NewNetworkWatcher(interfaceName string, snapInterval int) *NetworkWatcher {
+	nw := &NetworkWatcher{
 		interfaceName: interfaceName,
 	}
+
+	go nw.snapShotter(snapInterval)
+
+	return nw
+}
+
+func (n *NetworkWatcher) snapShotter(interval int) {
+	ticker := time.NewTicker(time.Duration(interval) * time.Minute)
+	n.takeSnapShot()
+	for {
+		select {
+		case <-ticker.C:
+			n.takeSnapShot()
+		}
+	}
+}
+
+func (n *NetworkWatcher) takeSnapShot() {
+	if constants.DEBUG {
+		logs.Logger.Println("taking snapshot...")
+	}
+
+	dl, e := n.GetDownloadedBytes()
+	up, e2 := n.GetUploadedBytes()
+	if e != nil || e2 != nil {
+		logs.Logger.Println("failed to get snapshot: ", common.NotNil(e, e2))
+		return
+	}
+
+	n.snapShotTime = time.Now()
+	n.snapShotRXDiff = dl - n.snapShotRXDiff
+	n.snapShotTXDiff = up - n.snapShotTXDiff
+}
+
+func (n *NetworkWatcher) GetSnapShotData() (rx int64, tx int64) {
+	return n.snapShotRXDiff, n.snapShotTXDiff
 }
 
 func (n *NetworkWatcher) GetDownloadedBytes() (int64, error) {

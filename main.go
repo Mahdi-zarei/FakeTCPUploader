@@ -33,6 +33,7 @@ func main() {
 	_offset := flag.Int64("offset", 0, "offset for download in GB")
 	_sleeptime := flag.Int("sleepTime", 1000, "sleep time between checker loops in ms")
 	_extraCount := flag.Int("extra", 1, "extra chunks uploaded per checker loop when ratio is already satisfied")
+	_snapInterval := flag.Int("snapInterval", 10, "interval between snapshots in minute")
 	_debug := flag.Bool("debug", false, "enable debug logs")
 	flag.Parse()
 	logs.Logger = log.Default()
@@ -44,6 +45,7 @@ func main() {
 	offset := *_offset
 	sleeptime := *_sleeptime
 	extraCount := *_extraCount
+	snapInterval := *_snapInterval
 
 	if constants.DEBUG {
 		logs.Logger.Printf("starting with ratio %v, maxSpeed %v, chunkSize %v, interfaceName %v, offset %v",
@@ -55,12 +57,14 @@ func main() {
 	}
 
 	calulator := internal.NewCalculator(int64(ratio), offset, maxSpeed)
-	networkWatcher := internal.NewNetworkWatcher(interfaceName)
+	networkWatcher := internal.NewNetworkWatcher(interfaceName, snapInterval)
 	uploader := internal.NewUploader(chunkSize, addresses)
 
 	for {
 		calulator.RegisterNew(common.MustVal(networkWatcher.GetDownloadedBytes()), common.MustVal(networkWatcher.GetUploadedBytes()))
 		needed := calulator.GetNeededWrite()
+		localNeeded := calulator.GetLocalNeededWrite(networkWatcher.GetSnapShotData())
+		needed = max(needed, localNeeded)
 		if needed == 0 {
 			if constants.DEBUG {
 				logs.Logger.Println("no needed data, going on with delay and half speed")

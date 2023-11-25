@@ -44,3 +44,18 @@ func (c *Calculator) GetNeededWrite() int64 {
 	}
 	return neededBytes
 }
+
+func (c *Calculator) GetLocalNeededWrite(rx, tx int64) int64 {
+	if rx == 0 || tx == 0 {
+		return 0
+	}
+	currentRatio := int64(float64(tx) / float64(rx))
+	neededBytes := (c.ratio - currentRatio) * rx
+	if neededBytes < 0 {
+		return 0
+	}
+	if neededBytes == 0 {
+		return common.MBtoBytes(1)
+	}
+	return neededBytes
+}
