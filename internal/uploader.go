@@ -69,9 +69,9 @@ func (u *Uploader) SendParallel(count int, maxTransferRate int64) {
 			err := u.SendData(u.addresses[addrIdx], transferRate)
 			t := time.Since(startTime)
 			if err != nil {
-				logs.Logger.Printf("error in sending after %v: %v", t.Seconds(), err)
+				logs.Logger.Printf("error in sending after %v: %v", common.FormatFloat64(t.Seconds(), 2), err)
 			} else {
-				logs.Logger.Printf("finished sending for %v in %v", u.addresses[addrIdx], t.Seconds())
+				logs.Logger.Printf("finished sending for %v in %v", u.addresses[addrIdx], common.FormatFloat64(t.Seconds(), 2))
 			}
 		}(u.counter)
 		u.counter++
