@@ -67,10 +67,10 @@ func main() {
 		needed = max(needed, localNeeded)
 		if needed == 0 {
 			if constants.DEBUG {
-				logs.Logger.Println("no needed data, going on with delay and 1/4 speed")
+				logs.Logger.Println("no needed data, going on with delay and 1/8 speed")
 			}
 			time.Sleep(500 * time.Millisecond)
-			uploader.SendParallel(1, maxSpeed/4)
+			uploader.SendParallel(1, maxSpeed/8)
 			continue
 		}
 		writeCount := (needed + int64(extraCount)*chunkSize) / chunkSize
