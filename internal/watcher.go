@@ -80,3 +80,7 @@ func (r *RateWatcher) WatchQuality(addr string, wantedRate int64, readBytes int6
 		}
 	}
 }
+
+func (r *RateWatcher) GetActiveAddressesCount() int {
+	return len(r.addresses) - len(r.banMap)
+}

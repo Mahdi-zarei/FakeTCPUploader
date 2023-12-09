@@ -22,13 +22,13 @@ type Uploader struct {
 	parallelFactor int
 }
 
-func NewUploader(chunkSize int64, addresses []string, parallelFactor int) *Uploader {
+func NewUploader(chunkSize int64, parallelFactor int, watcher *RateWatcher) *Uploader {
 	b := []byte("0987654321asdfghjklqwertyuiozxcvbnm")
 	baseData := bytes.Repeat(b, int(chunkSize)/len(b))
 	baseData = append(baseData, b[:int(chunkSize)-len(baseData)]...)
 	return &Uploader{
 		chunkSize:      chunkSize,
-		watcher:        NewRateWatcher(addresses, 4, 5),
+		watcher:        watcher,
 		baseData:       baseData,
 		parallelFactor: parallelFactor,
 	}
