@@ -35,7 +35,7 @@ func NewUploader(chunkSize int64, addresses []string, parallelFactor int) *Uploa
 }
 
 func (u *Uploader) SendData(address string, maxRate int64) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	start := time.Now()
 	wg := &sync.WaitGroup{}
