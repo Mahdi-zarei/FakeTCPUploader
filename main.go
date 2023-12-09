@@ -57,7 +57,7 @@ func main() {
 
 	calulator := internal.NewCalculator(int64(ratio), offset, maxSpeed)
 	networkWatcher := internal.NewNetworkWatcher(interfaceName, snapInterval)
-	uploader := internal.NewUploader(chunkSize, addresses)
+	uploader := internal.NewUploader(chunkSize, addresses, 4)
 
 	for {
 		calulator.RegisterNew(common.MustVal(networkWatcher.GetDownloadedBytes()), common.MustVal(networkWatcher.GetUploadedBytes()))
