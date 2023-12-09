@@ -71,7 +71,7 @@ func (r *RateWatcher) WatchQuality(addr string, wantedRate int64, readBytes int6
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	currRate := int64(float64(readBytes) / d.Seconds())
-	if int(float64(wantedRate)/float64(currRate)) >= r.limitCoef {
+	if currRate == 0 || int(float64(wantedRate)/float64(currRate)) >= r.limitCoef {
 		r.banMap[addr] = time.Now()
 		logs.Logger.Printf("address %v banned, wanted rate %v, current rate %v", addr, common.BytesToMB(wantedRate), common.BytesToMB(currRate))
 	} else {
