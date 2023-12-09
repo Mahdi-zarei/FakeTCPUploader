@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"math/rand"
 	"net/http"
 	"strconv"
 	"sync"
@@ -16,7 +15,7 @@ import (
 
 type Uploader struct {
 	chunkSize int64
-	addresses []string
+	watcher   *RateWatcher
 	baseData  []byte
 	counter   int
 }
@@ -27,31 +26,33 @@ func NewUploader(chunkSize int64, addresses []string) *Uploader {
 	baseData = append(baseData, b[:int(chunkSize)-len(baseData)]...)
 	return &Uploader{
 		chunkSize: chunkSize,
-		addresses: addresses,
+		watcher:   NewRateWatcher(addresses, 4, 5),
 		baseData:  baseData,
 	}
-}
-
-func (u *Uploader) getRandomAddress() string {
-	return u.addresses[rand.Int()%len(u.addresses)]
 }
 
 func (u *Uploader) SendData(address string, maxRate int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
-	req, err := common.CreateHttpPostRequest(ctx, "application/octet-stream", address, u.baseData, maxRate)
+	start := time.Now()
+	rateLimitedBody := common.NewRateLimiterReader(u.baseData, maxRate)
+	req, err := common.CreateHttpPostRequest(ctx, "application/octet-stream", address, rateLimitedBody)
 	if err != nil {
+		u.watcher.WatchQuality(address, maxRate, rateLimitedBody.BytesRead(), time.Since(start))
 		return err
 	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
+		u.watcher.WatchQuality(address, maxRate, rateLimitedBody.BytesRead(), time.Since(start))
 		return err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
+		u.watcher.WatchQuality(address, maxRate, rateLimitedBody.BytesRead(), time.Since(start))
 		return errors.New("non 200 status code: " + strconv.Itoa(resp.StatusCode))
 	}
+	u.watcher.WatchQuality(address, maxRate, rateLimitedBody.BytesRead(), time.Since(start))
 	return nil
 }
 
@@ -63,19 +64,18 @@ func (u *Uploader) SendParallel(count int, maxTransferRate int64) {
 	wg := sync.WaitGroup{}
 	for i := 0; i < count; i++ {
 		wg.Add(1)
-		go func(addrIdx int) {
+		go func() {
 			defer wg.Done()
 			startTime := time.Now()
-			err := u.SendData(u.addresses[addrIdx], transferRate)
+			addr := u.watcher.GetAddr()
+			err := u.SendData(addr, transferRate)
 			t := time.Since(startTime)
 			if err != nil {
 				logs.Logger.Printf("error in sending after %v: %v", common.FormatFloat64(t.Seconds(), 2), err)
 			} else {
-				logs.Logger.Printf("finished sending for %v in %v", u.addresses[addrIdx], common.FormatFloat64(t.Seconds(), 2))
+				logs.Logger.Printf("finished sending for %v in %v", addr, common.FormatFloat64(t.Seconds(), 2))
 			}
-		}(u.counter)
-		u.counter++
-		u.counter %= len(u.addresses)
+		}()
 	}
 	wg.Wait()
 }

@@ -63,3 +63,11 @@ func (r *RateLimitReader) WriteTo(w io.Writer) (int64, error) {
 		}
 	}
 }
+
+func (r *RateLimitReader) TotalBytes() int64 {
+	return r.Reader.Size()
+}
+
+func (r *RateLimitReader) BytesRead() int64 {
+	return r.Reader.Size() - int64(r.Reader.Len())
+}
