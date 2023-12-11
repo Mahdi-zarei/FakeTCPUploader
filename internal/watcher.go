@@ -54,7 +54,7 @@ func (r *RateWatcher) GetAddr() string {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if len(r.banMap) == len(r.addresses) {
-		panic("ALL ADDRESSES ARE BANNED")
+		clear(r.banMap)
 	}
 	for {
 		addr := r.addresses[r.counter]
