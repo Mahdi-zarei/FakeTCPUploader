@@ -10,6 +10,7 @@ import (
 
 type RateWatcher struct {
 	addresses  []string
+	foreign    []string
 	banMap     map[string]time.Time
 	limitCoef  int
 	banMinutes int
@@ -17,9 +18,10 @@ type RateWatcher struct {
 	mu         sync.Mutex
 }
 
-func NewRateWatcher(addresses []string, limitCoef int, banMinutes int) *RateWatcher {
+func NewRateWatcher(addresses []string, foreign []string, limitCoef int, banMinutes int) *RateWatcher {
 	watcher := &RateWatcher{
 		addresses:  addresses,
+		foreign:    foreign,
 		limitCoef:  limitCoef,
 		banMinutes: banMinutes,
 		banMap:     make(map[string]time.Time),
@@ -53,13 +55,14 @@ func (r *RateWatcher) reviseMap() {
 func (r *RateWatcher) GetAddr() string {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	mp := r.addresses
 	if len(r.banMap) == len(r.addresses) {
-		clear(r.banMap)
+		mp = r.foreign
 	}
 	for {
-		addr := r.addresses[r.counter]
+		addr := mp[r.counter]
 		r.counter++
-		r.counter %= len(r.addresses)
+		r.counter %= len(mp)
 		if _, ok := r.banMap[addr]; ok {
 			continue
 		}

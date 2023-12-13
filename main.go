@@ -25,6 +25,19 @@ var addresses = []string{
 	"http://speedtest.systec-co.com.prod.hosts.ooklaserver.net:8080/upload",
 }
 
+var foreign = []string{
+	"http://speedtest-paris.whiteprovider.net:8080/upload",
+	"http://montsouris3.speedtest.orange.fr.prod.hosts.ooklaserver.net:8080/upload",
+	"http://speedtest-prs.vts.bf.prod.hosts.ooklaserver.net:8080/upload",
+	"http://lg-par2.fdcservers.net:8080/upload",
+	"http://sp1.asthriona.com.prod.hosts.ooklaserver.net:8080/upload",
+	"http://speedtest.lekloud.net.prod.hosts.ooklaserver.net:8080/upload",
+	"http://speedtest.sewan.fr.prod.hosts.ooklaserver.net:8080/upload",
+	"http://speedtest-ookla-par.as62000.net.prod.hosts.ooklaserver.net:8080/upload",
+	"http://perf.keyyo.net:8080/upload",
+	"http://speedtest.milkywan.fr.prod.hosts.ooklaserver.net:8080/upload",
+}
+
 func main() {
 	go func() {
 		http.ListenAndServe(":3436", nil)
@@ -59,7 +72,7 @@ func main() {
 			offset)
 	}
 
-	rateWatcher := internal.NewRateWatcher(addresses, 4, 5)
+	rateWatcher := internal.NewRateWatcher(addresses, foreign, 3, 5)
 	calulator := internal.NewCalculator(int64(ratio), offset, maxSpeed)
 	networkWatcher := internal.NewNetworkWatcher(interfaceName, snapInterval)
 	uploader := internal.NewUploader(chunkSize, 2, rateWatcher)
