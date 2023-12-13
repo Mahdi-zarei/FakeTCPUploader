@@ -80,6 +80,9 @@ func (u *Uploader) SendParallel(count int, maxTransferRate int64) {
 	if constants.DEBUG {
 		logs.Logger.Println("sending ", count)
 	}
+	if count == 0 {
+		return
+	}
 	transferRate := maxTransferRate / int64(count)
 	wg := sync.WaitGroup{}
 	for i := 0; i < count; i++ {
