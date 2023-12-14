@@ -16,6 +16,7 @@ type NetworkWatcher struct {
 	snapShotTime   time.Time
 	snapShotRXDiff int64
 	snapShotTXDiff int64
+	snapAccuData   int64
 }
 
 func NewNetworkWatcher(interfaceName string, snapInterval int) *NetworkWatcher {
@@ -50,14 +51,24 @@ func (n *NetworkWatcher) takeSnapShot() {
 		logs.Logger.Println("failed to get snapshot: ", common.NotNil(e, e2))
 		return
 	}
+	n.calcAccuData(n.snapShotRXDiff, n.snapShotTXDiff)
 
 	n.snapShotTime = time.Now()
 	n.snapShotRXDiff = dl - n.snapShotRXDiff
 	n.snapShotTXDiff = up - n.snapShotTXDiff
 }
 
+func (n *NetworkWatcher) calcAccuData(currRX, currTX int64) {
+	diff := (currTX - 10*currRX) / 10
+	n.snapAccuData -= diff
+	if constants.DEBUG {
+		logs.Logger.Printf("currTX %v, currRX %v, last accu %v, curr accu %v", currTX, currRX, n.snapAccuData+diff, n.snapAccuData)
+	}
+	n.snapAccuData = max(0, n.snapAccuData)
+}
+
 func (n *NetworkWatcher) GetSnapShotData() (rx int64, tx int64) {
-	return n.snapShotRXDiff, n.snapShotTXDiff
+	return n.snapShotRXDiff + n.snapAccuData, n.snapShotTXDiff
 }
 
 func (n *NetworkWatcher) GetDownloadedBytes() (int64, error) {
