@@ -56,8 +56,8 @@ func (r *RateWatcher) GetAddr() string {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	mp := r.addresses
-	if len(r.banMap) == len(r.addresses) {
-		mp = r.foreign
+	if r.isDomesticExhausted() {
+		mp = append(mp, r.foreign...)
 	}
 	for {
 		addr := mp[r.counter]
@@ -68,6 +68,19 @@ func (r *RateWatcher) GetAddr() string {
 		}
 		return addr
 	}
+}
+
+func (r *RateWatcher) isDomesticExhausted() bool {
+	cnt := 0
+	for _, addr := range r.addresses {
+		if _, ok := r.banMap[addr]; ok {
+			cnt++
+		}
+	}
+	if cnt > len(r.addresses)/2 {
+		return true
+	}
+	return false
 }
 
 func (r *RateWatcher) WatchQuality(addr string, wantedRate int64, readBytes int64, d time.Duration) {
@@ -85,5 +98,8 @@ func (r *RateWatcher) WatchQuality(addr string, wantedRate int64, readBytes int6
 }
 
 func (r *RateWatcher) GetActiveAddressesCount() int {
+	if r.isDomesticExhausted() {
+		return len(r.addresses) + len(r.foreign) - len(r.banMap)
+	}
 	return len(r.addresses) - len(r.banMap)
 }
