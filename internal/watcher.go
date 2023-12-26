@@ -89,10 +89,10 @@ func (r *RateWatcher) WatchQuality(addr string, wantedRate int64, readBytes int6
 	currRate := int64(float64(readBytes) / d.Seconds())
 	if currRate == 0 || int(float64(wantedRate)/float64(currRate)) >= r.limitCoef {
 		r.banMap[addr] = time.Now()
-		logs.Logger.Printf("address %v banned, wanted rate %v, current rate %v", addr, common.BytesToMB(wantedRate), common.BytesToMB(currRate))
+		logs.Logger.Printf("address %v banned, wanted rate %v, current rate %v, took %v", addr, common.BytesToMB(wantedRate), common.BytesToMB(currRate), common.FormatFloat64(d.Seconds(), 2))
 	} else {
 		if constants.DEBUG {
-			logs.Logger.Printf("addr %v wanted %v got %v", addr, common.BytesToMB(wantedRate), common.BytesToMB(currRate))
+			logs.Logger.Printf("addr %v wanted %v got %v, took %v", addr, common.BytesToMB(wantedRate), common.BytesToMB(currRate), common.FormatFloat64(d.Seconds(), 2))
 		}
 	}
 }

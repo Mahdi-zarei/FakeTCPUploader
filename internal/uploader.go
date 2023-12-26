@@ -89,15 +89,8 @@ func (u *Uploader) SendParallel(count int, maxTransferRate int64) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			startTime := time.Now()
 			addr := u.watcher.GetAddr()
-			err := u.SendData(addr, transferRate)
-			t := time.Since(startTime)
-			if err != nil {
-				logs.Logger.Printf("error in sending after %v: %v", common.FormatFloat64(t.Seconds(), 2), err)
-			} else {
-				logs.Logger.Printf("finished sending for %v in %v", addr, common.FormatFloat64(t.Seconds(), 2))
-			}
+			_ = u.SendData(addr, transferRate)
 		}()
 	}
 	wg.Wait()
