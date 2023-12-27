@@ -4,6 +4,7 @@ import (
 	"FakeTCPUploader/common"
 	"FakeTCPUploader/constants"
 	"FakeTCPUploader/logs"
+	"fmt"
 	"sync"
 	"time"
 )
@@ -57,9 +58,19 @@ func (r *RateWatcher) GetAddr() string {
 	defer r.mu.Unlock()
 	mp := r.addresses
 	if r.isDomesticExhausted() {
+		fmt.Println("domestic exhausted, falling back to global mode")
 		mp = append(mp, r.foreign...)
 	}
+	deadlockCounter := 0
 	for {
+		if deadlockCounter > 100 {
+			r.reviseMap()
+			fmt.Println("weak deadlock, revising banned addresses...")
+		}
+		if deadlockCounter > 1000 {
+			panic(fmt.Sprintf("DEADLOCK IN LOOP, arr: %v, banMap: %v", mp, r.banMap))
+		}
+		deadlockCounter++
 		addr := mp[r.counter]
 		r.counter++
 		r.counter %= len(mp)
