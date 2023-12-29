@@ -95,7 +95,7 @@ func main() {
 	rateWatcher := internal.NewRateWatcher(addresses, foreign, 3, 5)
 	calulator := internal.NewCalculator(int64(ratio), offset, maxSpeed)
 	networkWatcher := internal.NewNetworkWatcher(interfaceName, snapInterval)
-	uploader := internal.NewUploader(chunkSize, 2, rateWatcher)
+	uploader := internal.NewUploader(chunkSize, 1, rateWatcher)
 
 	for {
 		calulator.RegisterNew(common.MustVal(networkWatcher.GetDownloadedBytes()), common.MustVal(networkWatcher.GetUploadedBytes()))
@@ -111,7 +111,7 @@ func main() {
 			continue
 		}
 		writeCount := (needed + int64(extraCount)*chunkSize) / chunkSize
-		writeCount = min(writeCount, int64(rateWatcher.GetActiveAddressesCount()*4))
+		writeCount = min(min(writeCount, int64(rateWatcher.GetActiveAddressesCount()*4)), 16)
 		uploader.SendParallel(int(writeCount), maxSpeed)
 		time.Sleep(time.Duration(sleeptime) * time.Millisecond)
 	}
