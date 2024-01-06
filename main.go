@@ -42,7 +42,6 @@ var addresses = []string{
 	"http://mshspd2.mci.ir:8080/upload",
 	"http://tzbspd2.mci.ir:8080/upload",
 	"http://tabriz1.irancell.ir:8080/upload",
-	"http://speedtest-3.maxnet.ir:8080/upload",
 }
 
 var foreign = []string{

@@ -83,7 +83,7 @@ func (r *RateWatcher) isDomesticExhausted() bool {
 			cnt++
 		}
 	}
-	if cnt > len(r.addresses)/2 {
+	if len(r.addresses)-cnt < 5 {
 		return true
 	}
 	return false
