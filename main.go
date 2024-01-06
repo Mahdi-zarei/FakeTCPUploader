@@ -110,7 +110,7 @@ func main() {
 			continue
 		}
 		writeCount := (needed + int64(extraCount)*chunkSize) / chunkSize
-		writeCount = min(min(writeCount, int64(rateWatcher.GetActiveAddressesCount()*4)), 16)
+		writeCount = min(min(writeCount, int64(rateWatcher.GetActiveAddressesCount()*4)), 9)
 		uploader.SendParallel(int(writeCount), maxSpeed)
 		time.Sleep(time.Duration(sleeptime) * time.Millisecond)
 	}
