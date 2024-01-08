@@ -91,7 +91,7 @@ func main() {
 			offset)
 	}
 
-	rateWatcher := internal.NewRateWatcher(addresses, foreign, 3, 5)
+	rateWatcher := internal.NewRateWatcher(addresses, foreign, 2, 10)
 	calulator := internal.NewCalculator(int64(ratio), offset, maxSpeed)
 	networkWatcher := internal.NewNetworkWatcher(interfaceName, snapInterval)
 	uploader := internal.NewUploader(chunkSize, 1, rateWatcher)
