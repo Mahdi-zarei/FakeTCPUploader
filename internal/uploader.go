@@ -35,7 +35,8 @@ func NewUploader(chunkSize int64, parallelFactor int, watcher *RateWatcher) *Upl
 }
 
 func (u *Uploader) SendData(address string, maxRate int64) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	timeout := 2 * int64(float64(len(u.baseData))/float64(maxRate))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer cancel()
 	start := time.Now()
 	wg := &sync.WaitGroup{}
