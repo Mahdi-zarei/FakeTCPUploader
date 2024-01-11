@@ -30,7 +30,7 @@ func (r *RateLimitReader) allowedReadAmount() int64 {
 	timeToSleep := float64(1000)/float64((r.maxrate+defaultReadAmount-1)/defaultReadAmount) - float64(time.Since(r.lastRead).Milliseconds())
 	time.Sleep(time.Duration(int64(timeToSleep)) * time.Millisecond)
 
-	extraCoef := float64(rand.Int63n(4000)) / 10000
+	extraCoef := float64(rand.Int63n(5000)) / 10000
 
 	return int64((1 + extraCoef) * float64(r.maxrate) * time.Since(r.lastRead).Seconds())
 }

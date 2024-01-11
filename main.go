@@ -94,12 +94,12 @@ func main() {
 	rateWatcher := internal.NewRateWatcher(addresses, foreign, 2, 10)
 	calulator := internal.NewCalculator(int64(ratio), offset, maxSpeed)
 	networkWatcher := internal.NewNetworkWatcher(interfaceName, snapInterval)
-	uploader := internal.NewUploader(chunkSize, 1, rateWatcher)
+	uploader := internal.NewUploader(chunkSize, 2, rateWatcher)
 
 	for {
 		calulator.RegisterNew(common.MustVal(networkWatcher.GetDownloadedBytes()), common.MustVal(networkWatcher.GetUploadedBytes()))
 		needed := calulator.GetNeededWrite()
-		localNeeded := calulator.GetLocalNeededWrite(networkWatcher.GetSnapShotData())
+		localNeeded, localRatio := calulator.GetLocalNeededWrite(networkWatcher.GetSnapShotData())
 		needed = max(needed, localNeeded)
 		if needed == 0 {
 			if constants.DEBUG {
@@ -109,9 +109,13 @@ func main() {
 			uploader.SendParallel(1, maxSpeed/8)
 			continue
 		}
+		speed := maxSpeed
+		if int(localRatio) <= ratio/2 {
+			speed *= 4
+		}
 		writeCount := (needed + int64(extraCount)*chunkSize) / chunkSize
-		writeCount = min(min(writeCount, int64(rateWatcher.GetActiveAddressesCount()*4)), 9)
-		uploader.SendParallel(int(writeCount), maxSpeed)
+		writeCount = max(min(min(writeCount, int64(rateWatcher.GetActiveAddressesCount()*4)), 4), 4)
+		uploader.SendParallel(int(writeCount), speed)
 		time.Sleep(time.Duration(sleeptime) * time.Millisecond)
 	}
 }
